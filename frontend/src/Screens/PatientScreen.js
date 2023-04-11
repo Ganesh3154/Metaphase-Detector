@@ -1,27 +1,48 @@
-import React from "react";
+import { React, useEffect, useState, useRef } from "react";
 import { Container } from "react-bootstrap";
-import patients from "../patients.js";
-import SearchTable from "../components/DataTable";
+// import patients from "../patients.js";
+import DataTable from "../components/DataTable";
+import axios from "axios";
 
 const PatientScreen = () => {
-  filterData();
-  const column = Object.keys(patients[0]);
+  let data;
+  const [patients, setPatient] = useState([]);
+  const [column, setColumn] = useState([]);
+  const mountedRef = useRef(false);
+
+  useEffect(() => {
+    if (mountedRef.current) {
+      console.log("trick: changed");
+      console.log(patients);
+      setColumn(Object.keys(patients[0]));
+    }
+  }, [patients]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    axios.get("http://localhost:5000/patient").then((res) => {
+      data = res.data;
+      setTimeout(setPatient(...patients, data), 1000, true);
+    });
+  }, []);
+
+  // filterData();
   return (
     <>
       <Container className='px-5 py-2' fluid>
         <h1 className='py-3'>Patients</h1>
       </Container>
-      <SearchTable column={column} items={patients} />
+      <DataTable column={column} items={patients} />
     </>
   );
 };
 
-const filterData = () => {
-  patients.map((item) => {
-    Object.keys(item).forEach(() => {
-      delete item.description;
-    });
-  });
-};
+// const filterData = () => {
+//   patients.map((item) => {
+//     Object.keys(item).forEach(() => {
+//       delete item.description;
+//     });
+//   });
+// };
 
 export default PatientScreen;

@@ -1,41 +1,90 @@
-import React from "react";
+import { React, useState } from "react";
+import axios from "axios";
 import { Form, Button, Container } from "react-bootstrap";
 
 const AddPatientScreen = () => {
+  const [patient, setPatient] = useState({
+    name: "",
+    address: "",
+    doctor_id: "",
+    age: 0,
+    gender: "",
+    analysed: false,
+  });
+
+  const submit = (e) => {
+    e.preventDefault();
+    console.log(patient);
+    axios
+      .post("http://localhost:5000/new_patient", patient)
+      .then((res) => {
+        console.log(res.data);
+        alert("Database updated!!!");
+      })
+      .catch((err) => {
+        alert("OOPS SOMETHING WENT WRONG", err);
+      });
+  };
+
+  const handleOnChange = (e) => {
+    console.log(e.target.name, " ", e.target.value);
+    setPatient({ ...patient, [e.target.name]: e.target.value });
+  };
+
   return (
     <Container>
       <Container className='ps-0 py-3 m-0' as='h1'>
         Add Patient
       </Container>
       <Form>
-        <Form.Group className='mb-3' htmlFor='patientId'>
+        {/* <Form.Group className='mb-3' htmlFor='patientId'>
           <Form.Label>Patient ID</Form.Label>
           <Form.Control id='patientId' placeholder='Patient ID' />
-        </Form.Group>
+        </Form.Group> */}
         <Form.Group className='mb-3' htmlFor='name'>
           <Form.Label>Name</Form.Label>
-          <Form.Control id='name' placeholder='Name' />
+          <Form.Control
+            id='name'
+            name='name'
+            placeholder='Name'
+            onChange={(e) => handleOnChange(e)}
+          />
         </Form.Group>
         <Form.Group className='mb-3' htmlFor='address'>
           <Form.Label>Address</Form.Label>
-          <Form.Control id='address' placeholder='Address' />
+          <Form.Control
+            id='address'
+            name='address'
+            placeholder='Address'
+            onChange={(e) => handleOnChange(e)}
+          />
         </Form.Group>
         <Form.Group className='mb-3' htmlFor='doctorId'>
           <Form.Label>Doctor ID</Form.Label>
-          <Form.Control id='doctorId' placeholder='Doctor ID' />
+          <Form.Control
+            id='doctorId'
+            name='doctor_id'
+            placeholder='Doctor ID'
+            onChange={(e) => handleOnChange(e)}
+          />
         </Form.Group>
         <Form.Group className='mb-3' htmlFor='age'>
           <Form.Label>Age</Form.Label>
-          <Form.Control id='age' placeholder='Age' />
+          <Form.Control
+            id='age'
+            name='age'
+            placeholder='Age'
+            onChange={(e) => handleOnChange(e)}
+          />
         </Form.Group>
         <Form.Group className='mb-3'>
           <Form.Label>Gender</Form.Label>
-          <Form.Select>
+          <Form.Select name='gender' onChange={(e) => handleOnChange(e)}>
             <option>Male</option>
             <option>Female</option>
           </Form.Select>
         </Form.Group>
-        <Button variant='primary' type='submit'>
+        <Button variant='primary' type='submit' onClick={(e) => submit(e)}>
           Submit
         </Button>
       </Form>

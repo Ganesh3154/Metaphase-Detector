@@ -5,7 +5,8 @@ def patientEntity(item) -> dict:
         'address': item['address'],
         'doctor_id': item['doctor_id'],
         'age': item['age'],
-        'gender': item['gender']
+        'gender': item['gender'],
+        'analysed': item['analysed']
     }
 
 def patientsEntity(entity) -> list:

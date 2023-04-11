@@ -9,6 +9,6 @@ class Patient(BaseModel):
     name: str
     address: str
     doctor_id: str
-    age: int
-    gender: Gender
+    age: str
+    gender: str
     analysed: bool
