@@ -1,5 +1,6 @@
 const patients = [
   {
+    id: 1,
     name: "Mathews",
     Address: "ABCY",
     Doctor_ID: 123,
@@ -8,6 +9,7 @@ const patients = [
     analysed: true,
   },
   {
+    id: 2,
     name: "Mathews",
     Address: "ABCX",
     Doctor_ID: 123,

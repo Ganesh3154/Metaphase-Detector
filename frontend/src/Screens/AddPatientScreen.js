@@ -8,6 +8,10 @@ const AddPatientScreen = () => {
         Add Patient
       </Container>
       <Form>
+        <Form.Group className='mb-3' htmlFor='patientId'>
+          <Form.Label>Patient ID</Form.Label>
+          <Form.Control id='patientId' placeholder='Patient ID' />
+        </Form.Group>
         <Form.Group className='mb-3' htmlFor='name'>
           <Form.Label>Name</Form.Label>
           <Form.Control id='name' placeholder='Name' />
