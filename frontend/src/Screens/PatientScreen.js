@@ -10,6 +10,13 @@ const PatientScreen = () => {
   const [column, setColumn] = useState([]);
   const mountedRef = useRef(false);
 
+  const getData = () => {
+    axios.get("http://localhost:8000/patient").then((res) => {
+      data = res.data;
+      setTimeout(setPatient(...patients, data), 1000, true);
+    });
+  };
+
   useEffect(() => {
     if (mountedRef.current) {
       console.log("trick: changed");
@@ -20,10 +27,7 @@ const PatientScreen = () => {
 
   useEffect(() => {
     mountedRef.current = true;
-    axios.get("http://localhost:5000/patient").then((res) => {
-      data = res.data;
-      setTimeout(setPatient(...patients, data), 1000, true);
-    });
+    getData();
   }, []);
 
   // filterData();

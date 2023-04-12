@@ -16,7 +16,7 @@ const AddPatientScreen = () => {
     e.preventDefault();
     console.log(patient);
     axios
-      .post("http://localhost:5000/new_patient", patient)
+      .post("http://localhost:8000/patient", patient)
       .then((res) => {
         console.log(res.data);
         alert("Database updated!!!");
