@@ -1,20 +1,25 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Container, Table, InputGroup, Form, Button } from "react-bootstrap";
 import { useState } from "react";
+import axios from "axios";
 
 const DataTable = (props) => {
   const [search, setSearch] = useState({ search: "" });
   const [toggleSearch, setToggleSearch] = useState(false);
   const [filterData, setFilterData] = useState({ filter: "" });
+  const [column, setColumn] = useState([]);
+  const mountedRef = useRef(false);
+  const [items, setItems] = useState([]);
+  const [analysed, setAnalysed] = useState(false);
+  let data;
 
   const handleOnChange = (e) => {
-    console.log(e.target);
     if (e.target.value.length == 0) {
       setToggleSearch(false);
     } else {
       setToggleSearch(true);
       setFilterData(
-        props.items.filter((data) =>
+        items.filter((data) =>
           Object.keys(data).some((key) =>
             String(data[key])
               .toLowerCase()
@@ -26,9 +31,32 @@ const DataTable = (props) => {
     setSearch({ ...search, [e.target.name]: e.target.value });
   };
 
+  const getData = () => {
+    axios.get(`http://localhost:8000/${props.path}`).then((res) => {
+      data = res.data;
+      // setTimeout(, 1000, true);
+      setItems(...items, data);
+      console.log(res.data);
+    });
+  };
+
+  const handleDelete = (e, id) => {
+    e.preventDefault();
+    axios.delete(`http://localhost:8000/${props.path}/${id}`).then(() => {
+      setItems(items.filter((item) => item["id"] != id));
+    });
+  };
+
   useEffect(() => {
-    console.log(filterData);
-  }, [filterData]);
+    if (mountedRef.current) {
+      setColumn(Object.keys(items[0]));
+    }
+  }, [items]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    getData();
+  }, []);
 
   return (
     <Container className='px-5 py-2' fluid>
@@ -48,7 +76,7 @@ const DataTable = (props) => {
       <Table bordered hover responsive variant='active'>
         <thead style={{ backgroundColor: "#383c44" }}>
           <tr style={{ color: "white" }}>
-            {props.column.map((c, i) => (
+            {column.map((c, i) => (
               <th key={i}>{c}</th>
             ))}
             <th>Actions</th>
@@ -56,7 +84,7 @@ const DataTable = (props) => {
         </thead>
         <tbody>
           {!toggleSearch
-            ? props.items.map((item, i) => (
+            ? items.map((item, i) => (
                 <tr key={i}>
                   {Object.values(item).map((cell, i) => {
                     if (
@@ -71,7 +99,7 @@ const DataTable = (props) => {
                               type='checkbox'
                               id='default-checkbox'
                               // label='default checkbox'
-                              defaultChecked={cell}
+                              checked={cell}
                             />
                           }
                         </td>
@@ -80,7 +108,12 @@ const DataTable = (props) => {
                   })}
                   <td>
                     {
-                      <Button size='sm'>
+                      <Button
+                        size='sm'
+                        onClick={(e) => {
+                          handleDelete(e, item["id"]);
+                        }}
+                      >
                         <i className='fa-solid fa-trash'></i>
                       </Button>
                     }{" "}
@@ -113,8 +146,7 @@ const DataTable = (props) => {
                               disabled
                               type='checkbox'
                               id='default-checkbox'
-                              // label='default checkbox'
-                              defaultChecked={cell}
+                              checked={cell}
                             />
                           }
                         </td>
