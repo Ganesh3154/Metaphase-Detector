@@ -8,14 +8,14 @@ import {
   Modal,
 } from "react-bootstrap";
 import { useState } from "react";
-import EditModal from "./EditModal";
+import EditPatientModal from "./EditPatientModal";
 import axios from "axios";
 
 const DataTable = (props) => {
   const [search, setSearch] = useState({ search: "" });
   const [toggleSearch, setToggleSearch] = useState(false);
   const [filterData, setFilterData] = useState({ filter: "" });
-  const [column, setColumn] = useState([]);
+  const [column, setColumn] = useState();
   const mountedRef = useRef(false);
   const [items, setItems] = useState([]);
   const [toggleEdit, setToggleEdit] = useState(false);
@@ -45,6 +45,7 @@ const DataTable = (props) => {
   const getData = () => {
     axios.get(`http://localhost:8000/${props.path}`).then((res) => {
       const data = res.data;
+      console.log(data);
       setItems(...items, data);
       console.log(res.data);
     });
@@ -52,6 +53,10 @@ const DataTable = (props) => {
 
   const toggleEditfn = () => {
     setToggleEdit(!toggleEdit);
+  };
+
+  const refresh = () => {
+    window.location.reload(false);
   };
 
   const handleEdit = (e, id) => {
@@ -70,7 +75,6 @@ const DataTable = (props) => {
         setFilterData(filterData.filter((item) => item["id"] != id));
     });
     setToggleConfirm(false);
-    // }
   };
 
   useEffect(() => {
@@ -82,6 +86,10 @@ const DataTable = (props) => {
   useEffect(() => {
     mountedRef.current = true;
     getData();
+  }, []);
+
+  useEffect(() => {
+    console.log(column);
   }, []);
 
   return (
@@ -102,15 +110,23 @@ const DataTable = (props) => {
       <Table bordered hover responsive variant='active'>
         <thead style={{ backgroundColor: "#383c44" }}>
           <tr style={{ color: "white" }}>
-            {column.map((c, i) => (
+            {column?.map((c, i) => (
               <th key={i}>{c}</th>
             ))}
-            <th>Actions</th>
+            {column ? (
+              <th>Actions</th>
+            ) : (
+              <th>
+                <h1 className='text-center' style={{ color: "white" }}>
+                  Loading...
+                </h1>
+              </th>
+            )}
           </tr>
         </thead>
         <tbody>
           {!toggleSearch
-            ? items.map((item, i) => (
+            ? items?.map((item, i) => (
                 <tr key={i}>
                   {Object.values(item).map((cell, i) => {
                     if (
@@ -161,7 +177,7 @@ const DataTable = (props) => {
                   </td>
                 </tr>
               ))
-            : filterData.map((item, i) => (
+            : filterData?.map((item, i) => (
                 <tr key={i}>
                   {Object.values(item).map((cell, i) => {
                     if (
@@ -215,7 +231,12 @@ const DataTable = (props) => {
         </tbody>
       </Table>
       {toggleEdit ? (
-        <EditModal data={editData} path={props.path} toggle={toggleEditfn} />
+        <EditPatientModal
+          data={editData}
+          path={props.path}
+          toggle={toggleEditfn}
+          refresh={refresh}
+        />
       ) : (
         <></>
       )}

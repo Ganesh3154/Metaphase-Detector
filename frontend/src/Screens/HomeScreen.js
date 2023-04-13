@@ -1,8 +1,30 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Container, Card, Row, Col, Button } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
+import axios from "axios";
 
 const HomeScreen = () => {
+  const [patients, setPatients] = useState({});
+
+  const getData = () => {
+    axios
+      .get(`http://localhost:8000/recent_patient`)
+      .then((res) => {
+        const data = res.data;
+        console.log(res.data);
+        setPatients(data);
+      })
+      .catch((err) => console.log(err));
+  };
+
+  useEffect(() => {
+    getData();
+  }, []);
+
+  useEffect(() => {
+    console.log(patients);
+  }, [patients]);
+
   return (
     <>
       {/* <Container className='py-5 text-center'>
@@ -19,9 +41,9 @@ const HomeScreen = () => {
                 <Card.Title as='h1'>
                   <i className='fa-solid fa-user'></i> Patient ID
                 </Card.Title>
-                <Card.Text>Name</Card.Text>
-                <Card.Text>Doctor Name</Card.Text>
-                <Card.Text as='h3'>dd/mm/yy</Card.Text>
+                <Card.Text as='h4'>Name: {patients[0]?.name}</Card.Text>
+                <Card.Text>Doctor Id: {patients[0]?.doctor_id}</Card.Text>
+                <Card.Text as='h3'>Age: {patients[0]?.age}</Card.Text>
               </Card.Body>
             </Card>
           </Col>
@@ -31,9 +53,9 @@ const HomeScreen = () => {
                 <Card.Title as='h1'>
                   <i className='fa-solid fa-user'></i> Patient ID
                 </Card.Title>
-                <Card.Text>Name</Card.Text>
-                <Card.Text>Doctor Name</Card.Text>
-                <Card.Text as='h3'>dd/mm/yy</Card.Text>
+                <Card.Text as='h4'>Name: {patients[1]?.name}</Card.Text>
+                <Card.Text>Doctor Id: {patients[1]?.doctor_id}</Card.Text>
+                <Card.Text as='h3'>Age: {patients[1]?.age}</Card.Text>
               </Card.Body>
             </Card>
           </Col>
@@ -43,9 +65,9 @@ const HomeScreen = () => {
                 <Card.Title as='h1'>
                   <i className='fa-solid fa-user'></i> Patient ID
                 </Card.Title>
-                <Card.Text>Name</Card.Text>
-                <Card.Text>Doctor Name</Card.Text>
-                <Card.Text as='h3'>dd/mm/yy</Card.Text>
+                <Card.Text as='h4'>Name: {patients[2]?.name}</Card.Text>
+                <Card.Text>Doctor Id: {patients[2]?.doctor_id}</Card.Text>
+                <Card.Text as='h3'>Age: {patients[2]?.age}</Card.Text>
               </Card.Body>
             </Card>
           </Col>
@@ -55,9 +77,9 @@ const HomeScreen = () => {
                 <Card.Title as='h1'>
                   <i className='fa-solid fa-user'></i> Patient ID
                 </Card.Title>
-                <Card.Text>Name</Card.Text>
-                <Card.Text>Doctor Name</Card.Text>
-                <Card.Text as='h3'>dd/mm/yy</Card.Text>
+                <Card.Text as='h4'>Name: {patients[3]?.name}</Card.Text>
+                <Card.Text>Doctor Id: {patients[3]?.doctor_id}</Card.Text>
+                <Card.Text as='h3'>Age: {patients[3]?.age}</Card.Text>
               </Card.Body>
             </Card>
           </Col>

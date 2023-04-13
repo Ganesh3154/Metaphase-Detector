@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Container, Modal, Button, Form } from "react-bootstrap";
 import axios from "axios";
 
-const EditModal = (props) => {
+const EditPatientModal = (props) => {
   const [patient, setPatient] = useState();
 
   useEffect(() => {
@@ -16,11 +16,12 @@ const EditModal = (props) => {
       .put(`http://localhost:8000/${props.path}/${patient.id}`, patient)
       .then((res) => {
         console.log(patient);
-        alert("Database updated!!!");
+        props.refresh();
       })
       .catch((err) => {
         alert("OOPS SOMETHING WENT WRONG", err);
       });
+    props.toggle();
   };
 
   //   useEffect(() => {
@@ -145,4 +146,4 @@ const EditModal = (props) => {
   );
 };
 
-export default EditModal;
+export default EditPatientModal;

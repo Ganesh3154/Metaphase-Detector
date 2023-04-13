@@ -10,8 +10,12 @@ patient = APIRouter()
 
 @patient.get("/patient")
 async def find_all_patients():
-    print(patientsEntity(db.metaphase.patient.find()))
-    return patientsEntity(db.metaphase.patient.find())
+    print(patientsEntity(db.metaphase.patient.find().sort('_id',-1)))
+    return patientsEntity(db.metaphase.patient.find().sort('_id',-1))
+
+@patient.get('/recent_patient')
+async def find_recent_patients():
+    return patientsEntity(db.metaphase.patient.find().limit(5).sort('_id',-1))
 
 @patient.post("/patient", status_code=status.HTTP_201_CREATED)
 def register_patient(patient: Patient) -> dict:
