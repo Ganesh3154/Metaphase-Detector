@@ -24,3 +24,10 @@ def delete_patient(id):
     print(id)
     db.metaphase.patient.delete_one({'_id': ObjectId(id)})
     return {'msg':f"Patient with id {id} deleted."}
+
+
+@patient.put("/patient/{id}", status_code=status.HTTP_202_ACCEPTED)
+def update_patient(id, patient: Patient):
+    print(id)
+    db.metaphase.patient.update_one({'_id': ObjectId(id)},{"$set":{'name': patient.name, 'address': patient.address, 'doctor_id': patient.doctor_id, 'age': patient.age, 'gender': patient.gender, 'analysed':patient.analysed}})
+    return {'msg':f"Patient with id {id} updated."}

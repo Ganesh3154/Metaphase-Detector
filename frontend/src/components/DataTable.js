@@ -1,6 +1,14 @@
 import React, { useEffect, useRef } from "react";
-import { Container, Table, InputGroup, Form, Button } from "react-bootstrap";
+import {
+  Container,
+  Table,
+  InputGroup,
+  Form,
+  Button,
+  Modal,
+} from "react-bootstrap";
 import { useState } from "react";
+import EditModal from "./EditModal";
 import axios from "axios";
 
 const DataTable = (props) => {
@@ -10,8 +18,11 @@ const DataTable = (props) => {
   const [column, setColumn] = useState([]);
   const mountedRef = useRef(false);
   const [items, setItems] = useState([]);
-  const [analysed, setAnalysed] = useState(false);
-  let data;
+  const [toggleEdit, setToggleEdit] = useState(false);
+  const [editData, setEditData] = useState({});
+  // const [confirm, setConfirm] = useState(false);
+  const [toggleConfirm, setToggleConfirm] = useState(false);
+  const [deleteId, setDeleteId] = useState();
 
   const handleOnChange = (e) => {
     if (e.target.value.length == 0) {
@@ -33,18 +44,33 @@ const DataTable = (props) => {
 
   const getData = () => {
     axios.get(`http://localhost:8000/${props.path}`).then((res) => {
-      data = res.data;
-      // setTimeout(, 1000, true);
+      const data = res.data;
       setItems(...items, data);
       console.log(res.data);
     });
   };
 
-  const handleDelete = (e, id) => {
+  const toggleEditfn = () => {
+    setToggleEdit(!toggleEdit);
+  };
+
+  const handleEdit = (e, id) => {
     e.preventDefault();
+    toggleEditfn();
+    setEditData(items.filter((item) => item["id"] == id));
+  };
+
+  const handleDelete = (e, id) => {
+    console.log(deleteId.id);
+    e.preventDefault();
+    console.log("im in");
     axios.delete(`http://localhost:8000/${props.path}/${id}`).then(() => {
       setItems(items.filter((item) => item["id"] != id));
+      if (filterData.length > 0)
+        setFilterData(filterData.filter((item) => item["id"] != id));
     });
+    setToggleConfirm(false);
+    // }
   };
 
   useEffect(() => {
@@ -98,7 +124,6 @@ const DataTable = (props) => {
                               disabled
                               type='checkbox'
                               id='default-checkbox'
-                              // label='default checkbox'
                               checked={cell}
                             />
                           }
@@ -111,14 +136,18 @@ const DataTable = (props) => {
                       <Button
                         size='sm'
                         onClick={(e) => {
-                          handleDelete(e, item["id"]);
+                          setToggleConfirm(true);
+                          setDeleteId(item["id"]);
                         }}
                       >
                         <i className='fa-solid fa-trash'></i>
                       </Button>
                     }{" "}
                     {
-                      <Button size='sm'>
+                      <Button
+                        size='sm'
+                        onClick={(e) => handleEdit(e, item["id"])}
+                      >
                         <i className='fa-solid fa-pen-to-square'></i>
                       </Button>
                     }{" "}
@@ -155,12 +184,21 @@ const DataTable = (props) => {
                   })}
                   <td>
                     {
-                      <Button size='sm'>
+                      <Button
+                        size='sm'
+                        onClick={(e) => {
+                          setToggleConfirm(true);
+                          setDeleteId(item["id"]);
+                        }}
+                      >
                         <i className='fa-solid fa-trash'></i>
                       </Button>
                     }{" "}
                     {
-                      <Button size='sm'>
+                      <Button
+                        size='sm'
+                        onClick={(e) => handleEdit(e, item["id"])}
+                      >
                         <i className='fa-solid fa-pen-to-square'></i>
                       </Button>
                     }{" "}
@@ -176,6 +214,48 @@ const DataTable = (props) => {
               ))}
         </tbody>
       </Table>
+      {toggleEdit ? (
+        <EditModal data={editData} path={props.path} toggle={toggleEditfn} />
+      ) : (
+        <></>
+      )}
+      {toggleConfirm ? (
+        <>
+          <div
+            className='modal show'
+            style={{
+              display: "block",
+              position: "absolute",
+              paddingTop: "20%",
+              background: "rgba(0, 0, 0, 0.7)",
+            }}
+          >
+            <Modal.Dialog>
+              <Modal.Header>
+                <Modal.Title>Are you sure?</Modal.Title>
+              </Modal.Header>
+              <Modal.Footer>
+                <Button
+                  onClick={(e) => {
+                    handleDelete(e, deleteId);
+                  }}
+                >
+                  Yes
+                </Button>
+                <Button
+                  onClick={() => {
+                    setToggleConfirm(false);
+                  }}
+                >
+                  No
+                </Button>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </div>
+        </>
+      ) : (
+        <></>
+      )}
     </Container>
   );
 };
