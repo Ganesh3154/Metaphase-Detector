@@ -8,7 +8,9 @@ class Gender(str, Enum):
 class Patient(BaseModel):
     name: str
     address: str
-    doctor_id: str
-    age: str
-    gender: str
+    doctor_id: int
+    age: int
+    gender: Gender
     analysed: bool
+    url: str
+    patient_id: int
