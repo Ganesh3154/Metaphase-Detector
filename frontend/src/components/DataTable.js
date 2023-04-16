@@ -117,9 +117,9 @@ const DataTable = (props) => {
               <th>Actions</th>
             ) : (
               <th>
-                <h1 className='text-center' style={{ color: "white" }}>
+                <h4 className='text-center' style={{ color: "white" }}>
                   Loading...
-                </h1>
+                </h4>
               </th>
             )}
           </tr>
