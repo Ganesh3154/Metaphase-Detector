@@ -12,24 +12,24 @@ async def find_all_doctors():
     '''List all doctors'''
     return doctorsEntity(conn.metaphase.doctor.find())
 
-@doctor.get("/id")
+@doctor.get("/doctor/{id}")
 def get_doctor(id):
     '''Get doctor details using their id'''
-    return conn.metaphase.doctor.find_one({"_id": ObjectId(id)})
+    return conn.metaphase.doctor.find_one({"doctor_id": id})
 
-@doctor.post("/new_doctor")
+@doctor.post("/doctor")
 def register_doctor(doctor: Doctor):
     '''Add new doctors'''
-    conn.metaphase.doctor.insertOne(doctor)
+    conn.metaphase.doctor.insert_one(dict(doctor))
 
-@doctor.put("/id")
+@doctor.put("/doctor/{id}")
 def update_doctor(id, doctor: Doctor):
     '''Update doctor details using their id'''
-    conn.metaphase.doctor.find_one_and_update({"_id": ObjectId(id)}, {'$set': dict(doctor)})
+    conn.metaphase.doctor.find_one_and_update({"doctor_id": int(id)}, {'$set':{'name': doctor.name, 'hospital': doctor.hospital, 'department': doctor.department, 'age': int(doctor.age), 'gender': doctor.gender, 'doctor_id': int(id)}})
     return doctorsEntity(conn.metaphase.doctor.find())
 
-@doctor.delete("/id")
-def delete_doctor(id, doctor: Doctor):
+@doctor.delete("/doctor/{id}")
+def delete_doctor(id):
     '''Delete doctor details using their id'''
-    conn.metaphase.doctor.find_one_and_delete({"_id": ObjectId(id)})
+    conn.metaphase.doctor.find_one_and_delete({"doctor_id": int(id)})
     return doctorsEntity(conn.metaphase.doctor.find())

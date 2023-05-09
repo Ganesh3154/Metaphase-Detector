@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter,status
 from models.patient import Patient
 from config.db import conn
 from schemas.patient import patientEntity, patientsEntity
@@ -12,36 +12,43 @@ async def find_all_patients():
     '''List all patients'''
     return patientsEntity(conn.metaphase.patient.find())
 
-@patient.get("/patient/id")
+@patient.get("/patient/{id}")
 def get_patient(id):
+    print(conn.metaphase.patient.find_one({"patient_id": int(id)}))
     '''Get patient details using their id'''
-    return conn.metaphase.patient.find_one({"patient_id": id})
+    return patientsEntity([conn.metaphase.patient.find_one({"patient_id": int(id)})])
 
-@patient.post("/patient/new_patient")
+@patient.get('/recent_patient')
+async def find_recent_patients():
+    return patientsEntity(conn.metaphase.patient.find().limit(5).sort('_id',-1))
+
+@patient.post("/patient")
 def register_patient(patient: Patient):
     '''Add new patients'''
-    conn.metaphase.patient.insertOne(patient)
+    conn.metaphase.patient.insert_one(dict(patient))
 
-@patient.put("/patient/id")
+@patient.put("/patient/{id}")
 def update_patient(id, patient: Patient):
     '''Update patient details'''
-    conn.metaphase.patient.find_one_and_update({"patient_id": id}, {'$set': dict(patient)})
+    print(patient)
+    conn.metaphase.patient.find_one_and_update({"patient_id": int(id)}, {"$set":{'name': patient.name, 'address': patient.address, 'doctor_id': int(patient.doctor_id), 'age': int(patient.age), 'gender': patient.gender, 'analysed':patient.analysed, 'patient_id': int(id)}})
     return patientsEntity(conn.metaphase.patient.find())
 
-@patient.delete("/patient/id")
+@patient.delete("/patient/{id}",status_code=status.HTTP_200_OK)
 def delete_patient(id):
     '''Delete patient details using their id'''
-    conn.metaphase.patient.find_one_and_delete({"patient_id": id})
+    conn.metaphase.patient.find_one_and_delete({"patient_id": int(id)})
     return patientsEntity(conn.metaphase.patient.find())
 
-@patient.get("/patient/id/analyse")
+@patient.get("/patient/{id}/analyse")
 def analyse_patient_10x(id):
     '''Run ML algorithm to find metaphases from 10x images'''
-    img_url = conn.metaphase.patient.find_one({'_id': ObjectId("64351dbd7e2a1592c0eea3f5")}, {'url': 1})
+    img_url = conn.metaphase.patient.find_one({'patient_id': int(id)}, {'url': 1})
     url = img_url['url']    
-
+    print(url)
     # Read the image
     img = cv2.imread(url)
+    # print(img)
     img = cv2.resize(img, (1000,1000))
     # Convert to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)

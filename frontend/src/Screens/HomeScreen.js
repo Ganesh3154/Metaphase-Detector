@@ -38,8 +38,9 @@ const HomeScreen = () => {
           <Col>
             <Card className='m-auto' style={{ width: "18rem" }}>
               <Card.Body>
-                <Card.Title as='h1'>
-                  <i className='fa-solid fa-user'></i> Patient ID
+                <Card.Title as='h3'>
+                  <i className='fa-solid fa-user'></i> Patient ID:{" "}
+                  {patients[0]?.id}
                 </Card.Title>
                 <Card.Text as='h4'>Name: {patients[0]?.name}</Card.Text>
                 <Card.Text>Doctor Id: {patients[0]?.doctor_id}</Card.Text>
@@ -50,8 +51,9 @@ const HomeScreen = () => {
           <Col>
             <Card className='m-auto' style={{ width: "18rem" }}>
               <Card.Body>
-                <Card.Title as='h1'>
-                  <i className='fa-solid fa-user'></i> Patient ID
+                <Card.Title as='h3'>
+                  <i className='fa-solid fa-user'></i> Patient ID:{" "}
+                  {patients[1]?.id}
                 </Card.Title>
                 <Card.Text as='h4'>Name: {patients[1]?.name}</Card.Text>
                 <Card.Text>Doctor Id: {patients[1]?.doctor_id}</Card.Text>
@@ -62,8 +64,9 @@ const HomeScreen = () => {
           <Col>
             <Card className='m-auto' style={{ width: "18rem" }}>
               <Card.Body>
-                <Card.Title as='h1'>
-                  <i className='fa-solid fa-user'></i> Patient ID
+                <Card.Title as='h3'>
+                  <i className='fa-solid fa-user'></i> Patient ID:{" "}
+                  {patients[2]?.id}
                 </Card.Title>
                 <Card.Text as='h4'>Name: {patients[2]?.name}</Card.Text>
                 <Card.Text>Doctor Id: {patients[2]?.doctor_id}</Card.Text>
@@ -74,8 +77,9 @@ const HomeScreen = () => {
           <Col>
             <Card className='m-auto' style={{ width: "18rem" }}>
               <Card.Body>
-                <Card.Title as='h1'>
-                  <i className='fa-solid fa-user'></i> Patient ID
+                <Card.Title as='h3'>
+                  <i className='fa-solid fa-user'></i> Patient ID:{" "}
+                  {patients[3]?.id}
                 </Card.Title>
                 <Card.Text as='h4'>Name: {patients[3]?.name}</Card.Text>
                 <Card.Text>Doctor Id: {patients[3]?.doctor_id}</Card.Text>

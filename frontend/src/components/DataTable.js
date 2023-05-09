@@ -10,6 +10,7 @@ import {
 import { useState } from "react";
 import EditPatientModal from "./EditPatientModal";
 import axios from "axios";
+import EditDoctorModal from "./EditDoctorModal";
 
 const DataTable = (props) => {
   const [search, setSearch] = useState({ search: "" });
@@ -69,6 +70,7 @@ const DataTable = (props) => {
     console.log(deleteId.id);
     e.preventDefault();
     console.log("im in");
+    console.log(id);
     axios.delete(`http://localhost:8000/${props.path}/${id}`).then(() => {
       setItems(items.filter((item) => item["id"] != id));
       if (filterData.length > 0)
@@ -230,8 +232,18 @@ const DataTable = (props) => {
               ))}
         </tbody>
       </Table>
-      {toggleEdit ? (
+      {toggleEdit && props.path == "patient" ? (
         <EditPatientModal
+          data={editData}
+          path={props.path}
+          toggle={toggleEditfn}
+          refresh={refresh}
+        />
+      ) : (
+        <></>
+      )}
+      {toggleEdit && props.path == "doctor" ? (
+        <EditDoctorModal
           data={editData}
           path={props.path}
           toggle={toggleEditfn}

@@ -6,10 +6,11 @@ const AddPatientScreen = () => {
   const [patient, setPatient] = useState({
     name: "",
     address: "",
-    doctor_id: "",
+    doctor_id: 0,
     age: 0,
     gender: "",
     analysed: false,
+    url: "",
   });
 
   const submit = (e) => {
@@ -41,10 +42,15 @@ const AddPatientScreen = () => {
           submit(e);
         }}
       >
-        {/* <Form.Group className='mb-3' htmlFor='patientId'>
+        <Form.Group className='mb-3' htmlFor='patient_id'>
           <Form.Label>Patient ID</Form.Label>
-          <Form.Control id='patientId' placeholder='Patient ID' />
-        </Form.Group> */}
+          <Form.Control
+            id='patientId'
+            placeholder='Patient ID'
+            name='patient_id'
+            onChange={(e) => handleOnChange(e)}
+          />
+        </Form.Group>
         <Form.Group className='mb-3' htmlFor='name'>
           <Form.Label>Name</Form.Label>
           <Form.Control

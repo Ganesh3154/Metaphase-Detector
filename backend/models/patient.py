@@ -2,8 +2,8 @@ from pydantic import BaseModel
 from enum import Enum
 
 class Gender(str, Enum):
-    male = "male"
-    female = "female"
+    male = "Male"
+    female = "Female"
 
 class Patient(BaseModel):
     name: str

@@ -2,31 +2,29 @@ import React, { useState, useEffect } from "react";
 import { Container, Modal, Button, Form } from "react-bootstrap";
 import axios from "axios";
 
-const EditPatientModal = (props) => {
-  const [patient, setPatient] = useState();
+const EditDoctorModal = (props) => {
+  const [doctor, setDoctor] = useState();
 
   useEffect(() => {
     const data = {
-      patient_id: props.data[0].id,
+      doctor_id: props.data[0].id,
       name: props.data[0].name,
-      address: props.data[0].address,
+      hospital: props.data[0].hospital,
       age: props.data[0].age,
       gender: props.data[0].gender,
-      url: props.data[0].url,
-      doctor_id: props.data[0].doctor_id,
-      analysed: props.data[0].analysed,
+      department: props.data[0].department,
     };
     console.log(data);
-    setPatient(data);
+    setDoctor(data);
   }, []);
 
   const submit = (e) => {
     e.preventDefault();
-    console.log(patient);
+    console.log(doctor);
     axios
-      .put(`http://localhost:8000/${props.path}/${patient.patient_id}`, patient)
+      .put(`http://localhost:8000/${props.path}/${doctor.doctor_id}`, doctor)
       .then((res) => {
-        console.log(patient);
+        console.log(doctor);
         props.refresh();
       })
       .catch((err) => {
@@ -41,7 +39,7 @@ const EditPatientModal = (props) => {
 
   const handleOnChange = (e) => {
     console.log(e.target.name, " ", e.target.value);
-    setPatient({ ...patient, [e.target.name]: e.target.value });
+    setDoctor({ ...doctor, [e.target.name]: e.target.value });
   };
 
   return (
@@ -57,7 +55,7 @@ const EditPatientModal = (props) => {
       >
         <Modal.Dialog>
           <Modal.Header>
-            <Modal.Title>Edit Patient</Modal.Title>
+            <Modal.Title>Edit Doctor</Modal.Title>
           </Modal.Header>
 
           <Modal.Body>
@@ -85,17 +83,28 @@ const EditPatientModal = (props) => {
                 />
               </Form.Group>
               <Form.Group className='mb-3' htmlFor='address'>
-                <Form.Label>Address</Form.Label>
+                <Form.Label>Hospital</Form.Label>
                 <Form.Control
-                  defaultValue={props.data[0].address}
+                  defaultValue={props.data[0].hospital}
                   required
-                  id='address'
-                  name='address'
-                  placeholder='Address'
+                  id='hospital'
+                  name='hospital'
+                  placeholder='Hospital'
                   onChange={(e) => handleOnChange(e)}
                 />
               </Form.Group>
-              <Form.Group className='mb-3' htmlFor='doctorId'>
+              <Form.Group className='mb-3' htmlFor='address'>
+                <Form.Label>Department</Form.Label>
+                <Form.Control
+                  defaultValue={props.data[0].department}
+                  required
+                  id='department'
+                  name='department'
+                  placeholder='Department'
+                  onChange={(e) => handleOnChange(e)}
+                />
+              </Form.Group>
+              {/* <Form.Group className='mb-3' htmlFor='doctorId'>
                 <Form.Label>Doctor ID</Form.Label>
                 <Form.Control
                   defaultValue={props.data[0].doctor_id}
@@ -105,7 +114,7 @@ const EditPatientModal = (props) => {
                   placeholder='Doctor ID'
                   onChange={(e) => handleOnChange(e)}
                 />
-              </Form.Group>
+              </Form.Group> */}
               <Form.Group className='mb-3' htmlFor='age'>
                 <Form.Label>Age</Form.Label>
                 <Form.Control
@@ -157,4 +166,4 @@ const EditPatientModal = (props) => {
   );
 };
 
-export default EditPatientModal;
+export default EditDoctorModal;

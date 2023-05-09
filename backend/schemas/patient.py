@@ -1,13 +1,13 @@
 def patientEntity(item) -> dict:
     return {
-        'id': str(item['_id']),
+        'id': item['patient_id'],
         'name': item['name'],
         'address': item['address'],
         'doctor_id': item['doctor_id'],
         'age': item['age'],
         'gender': item['gender'],
-        'url': item['url'],
-        'patient_id': item['patient_id']
+        'url': item['url'],  
+        'analysed': item['analysed']
     }
 
 def patientsEntity(entity) -> list:
