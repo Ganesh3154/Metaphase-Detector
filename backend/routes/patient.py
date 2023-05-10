@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter,status,File,UploadFile
 from models.patient import Patient
 from config.db import conn
@@ -45,96 +46,101 @@ def delete_patient(id):
     conn.metaphase.patient.find_one_and_delete({"patient_id": int(id)})
     return patientsEntity(conn.metaphase.patient.find())
 
-@patient.get("/patient/images/{id}")
+@patient.get("/patient/images/detect/{id}")
 async def get_images(id):
     # img_path = 'images/0/1.png'
     # print(img_path)
     print(id)
-    images = os.listdir(os.path.join('images/'+str(id)))
+    images = os.listdir(os.path.join('images/detect/'+str(id)))
     # print(images)
     return [FileResponse(src) for src in images]
 
 @patient.post("/patient/{id}/detect_metaphase")
-async def detect_metaphase(id, file: UploadFile = File(...)):
+async def detect_metaphase(id, file: List[UploadFile] = File(...)):
     '''Run ML algorithm to find metaphases from 10x images'''
+    if not conn.metaphase.patient.find_one({"patient_id": int(id)}):
+        return {'msg': f'Patient with id {id} not found'}
 
+    for files in file:
     # Read the image
-    contents = await file.read()
-    nparr = np.fromstring(contents, np.uint8)
-    nparr1 = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-    img = cv2.resize(nparr1, (1000, 1000))
+        contents = await files.read()
+        nparr = np.fromstring(contents, np.uint8)
+        nparr1 = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        img = cv2.resize(nparr1, (1000, 1000))
 
-    # Convert to grayscale
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        # Convert to grayscale
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # Apply threshold
-    _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV|cv2.THRESH_OTSU)
+        # Apply threshold
+        _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV|cv2.THRESH_OTSU)
 
-    # Apply morphological operations
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
-    kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (6, 3))
-    cleaned = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+        # Apply morphological operations
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
+        kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (6, 3))
+        cleaned = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
 
-    # applying erosion
-    kernel = np.ones((5, 5), np.uint8)
-    erosion = cv2.erode(cleaned, kernel, iterations=2)
+        # applying erosion
+        kernel = np.ones((5, 5), np.uint8)
+        erosion = cv2.erode(cleaned, kernel, iterations=2)
 
-    # Find contours
-    contours, _ = cv2.findContours(erosion, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        # Find contours
+        contours, _ = cv2.findContours(erosion, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    min_area = 30  # minimum area for a metaphase chromosome
-    max_area = 8000
-    for cnt in contours:
-        M = cv2.moments(cnt)
-        area = cv2.contourArea(cnt)
-        radius = int(math.sqrt(area / 3.14)) + 1    # finding the radius of the circle using the area of the circle
-    #     print(int(radius))
-        if area < min_area or area > max_area:
-            continue
-        
-        # Check if the contour is roughly circular using the circularity metric
-        perimeter = cv2.arcLength(cnt, True)
-        circularity = 4 * 3.14 * area / (perimeter ** 2)
-        if circularity > 0.31:
-            # cv2.drawContours(img, [cnt], 0, (0, 255, 0), 2)
+        min_area = 30  # minimum area for a metaphase chromosome
+        max_area = 8000
+        for cnt in contours:
+            M = cv2.moments(cnt)
+            area = cv2.contourArea(cnt)
+            radius = int(math.sqrt(area / 3.14)) + 1    # finding the radius of the circle using the area of the circle
+        #     print(int(radius))
+            if area < min_area or area > max_area:
+                continue
+            
+            # Check if the contour is roughly circular using the circularity metric
+            perimeter = cv2.arcLength(cnt, True)
+            circularity = 4 * 3.14 * area / (perimeter ** 2)
+            if circularity > 0.31:
+                # cv2.drawContours(img, [cnt], 0, (0, 255, 0), 2)
+                if M['m00']:
+                    cx = int(M['m10']/M['m00'])
+                    cy = int(M['m01']/M['m00'])
+                    cv2.circle(cleaned, (cx, cy), radius + 10, (0, 0, 0), -1)
+                    # cv2.circle(img, (cx, cy), 2, (0, 0, 255), -1)
+                
+        # Applying dilation
+        kernel = np.ones((5,5),np.uint8)
+        dilated = cv2.dilate(cleaned,kernel,iterations = 6)
+
+        contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        min_area = 3000  # minimum area for a metaphase chromosome
+        max_area = 50000
+        for cnt in contours:
+            M = cv2.moments(cnt)
+            area = cv2.contourArea(cnt)
+            radius = int(math.sqrt(area / 3.14)) + 1
+            print(int(radius))
+            if area < min_area or area > max_area:
+                continue
+            
+            # Check if the contour is roughly circular using the circularity metric
+            perimeter = cv2.arcLength(cnt, True)
+            circularity = 4 * 3.14 * area / (perimeter ** 2)
+        #     if circularity < 0.5:
+        #         cv2.drawContours(img1, [cnt], 0, (0, 255, 0), 2)
             if M['m00']:
+        #         print(M)
                 cx = int(M['m10']/M['m00'])
                 cy = int(M['m01']/M['m00'])
-                cv2.circle(cleaned, (cx, cy), radius + 10, (0, 0, 0), -1)
-                # cv2.circle(img, (cx, cy), 2, (0, 0, 255), -1)
-            
-    # Applying dilation
-    kernel = np.ones((5,5),np.uint8)
-    dilated = cv2.dilate(cleaned,kernel,iterations = 6)
+                cv2.circle(img, (cx, cy), radius, (0, 0, 255), 5)
 
-    contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    min_area = 3000  # minimum area for a metaphase chromosome
-    max_area = 50000
-    for cnt in contours:
-        M = cv2.moments(cnt)
-        area = cv2.contourArea(cnt)
-        radius = int(math.sqrt(area / 3.14)) + 1
-        print(int(radius))
-        if area < min_area or area > max_area:
-            continue
-        
-        # Check if the contour is roughly circular using the circularity metric
-        perimeter = cv2.arcLength(cnt, True)
-        circularity = 4 * 3.14 * area / (perimeter ** 2)
-    #     if circularity < 0.5:
-    #         cv2.drawContours(img1, [cnt], 0, (0, 255, 0), 2)
-        if M['m00']:
-    #         print(M)
-            cx = int(M['m10']/M['m00'])
-            cy = int(M['m01']/M['m00'])
-            cv2.circle(img, (cx, cy), radius, (0, 0, 255), 5)
+        # cv2.imshow('eroded', erosion)
+        # cv2.imshow('final', img)
+        # path = 'images/detect/{id}'+'.png'
+        if not os.path.exists('images/detect/'+str(id)):
+            os.mkdir(os.path.join('images/detect/'+str(id)))
+        img_path = os.path.join('images/detect/'+str(id)+'/'+str(uuid.uuid4())+'.png')
+        cv2.imwrite(img_path, img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
-    # cv2.imshow('eroded', erosion)
-    # cv2.imshow('final', img)
-    # path = 'images/detect/{id}'+'.png'
-    if not os.path.exists('images/'+str(id)):
-        os.mkdir(os.path.join('images/'+str(id)))
-    img_path = os.path.join('images/'+str(id)+'/'+str(uuid.uuid4())+'.png')
-    cv2.imwrite(img_path, img)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+
