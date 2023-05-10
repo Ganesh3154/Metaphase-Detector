@@ -50,51 +50,91 @@ async def get_images(id):
     images = os.listdir(os.path.join('images/'+str(id)))
     return [FileResponse(src) for src in images]
 
-@patient.get("/patient/{id}/analyse")
-def analyse_patient_10x(id):
+@patient.post("/patient/{id}/detect_metaphase")
+async def detect_metaphase(id, file: UploadFile = File(...)):
     '''Run ML algorithm to find metaphases from 10x images'''
-    img_url = conn.metaphase.patient.find_one({'patient_id': int(id)}, {'url': 1})
-    url = img_url['url']    
-    print(url)
+
     # Read the image
-    img = cv2.imread(url)
-    # print(img)
-    img = cv2.resize(img, (1000,1000))
+    contents = await file.read()
+    nparr = np.fromstring(contents, np.uint8)
+    nparr1 = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    img = cv2.resize(nparr1, (1000, 1000))
+
     # Convert to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     # Apply threshold
-    _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
+    _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV|cv2.THRESH_OTSU)
 
     # Apply morphological operations
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
-    cleaned = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
-    #cleaned = cv2.Canny(cleaned, 150, 50)
-    cv2.imshow('clean', cleaned)
+    kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (6, 3))
+    cleaned = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+
+    # applying erosion
+    kernel = np.ones((5, 5), np.uint8)
+    erosion = cv2.erode(cleaned, kernel, iterations=2)
 
     # Find contours
-    contours, _ = cv2.findContours(cleaned, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(erosion, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    min_area = 260  # minimum area for a metaphase chromosome
+    min_area = 30  # minimum area for a metaphase chromosome
     max_area = 8000
     for cnt in contours:
+        M = cv2.moments(cnt)
         area = cv2.contourArea(cnt)
+        radius = int(math.sqrt(area / 3.14)) + 1    # finding the radius of the circle using the area of the circle
+    #     print(int(radius))
         if area < min_area or area > max_area:
             continue
-
+        
         # Check if the contour is roughly circular using the circularity metric
         perimeter = cv2.arcLength(cnt, True)
         circularity = 4 * 3.14 * area / (perimeter ** 2)
-        if circularity < 0.75:
-            cv2.drawContours(img, [cnt], 0, (0, 255, 0), 2)
-        print(circularity)
+        if circularity > 0.31:
+            # cv2.drawContours(img, [cnt], 0, (0, 255, 0), 2)
+            if M['m00']:
+                cx = int(M['m10']/M['m00'])
+                cy = int(M['m01']/M['m00'])
+                cv2.circle(cleaned, (cx, cy), radius + 10, (0, 0, 0), -1)
+                # cv2.circle(img, (cx, cy), 2, (0, 0, 255), -1)
+            
+    # Applying dilation
+    kernel = np.ones((5,5),np.uint8)
+    dilated = cv2.dilate(cleaned,kernel,iterations = 6)
 
-        # Draw the contour on the original image
+    contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    min_area = 5000  # minimum area for a metaphase chromosome
+    max_area = 50000
+    for cnt in contours:
+        M = cv2.moments(cnt)
+        area = cv2.contourArea(cnt)
+        radius = int(math.sqrt(area / 3.14)) + 1
+        print(int(radius))
+        if area < min_area or area > max_area:
+            continue
         
-    # Draw contours on original image
-    #cv2.drawContours(img, contours, -1, (0,255,0), 3)
+        # Check if the contour is roughly circular using the circularity metric
+        perimeter = cv2.arcLength(cnt, True)
+        circularity = 4 * 3.14 * area / (perimeter ** 2)
+    #     if circularity < 0.5:
+    #         cv2.drawContours(img1, [cnt], 0, (0, 255, 0), 2)
+        if M['m00']:
+    #         print(M)
+            cx = int(M['m10']/M['m00'])
+            cy = int(M['m01']/M['m00'])
+            cv2.circle(img, (cx, cy), radius, (0, 0, 255), 5)
+
+    # cv2.imshow('eroded', erosion)
+    # cv2.imshow('final', img)
+    path = 'images/detect/{id}'+'.png'
+    print(os.listdir(os.path.join('py-mongo')))
+    # cv2.imwrite(os.path.join(path), img)
+    # cv2.imshow('dilated', dilated)
+    # cv2.imshow('clean', cleaned)
 
     # Display the result
-    cv2.imshow('Metaphase spread', img)
+    # cv2.imshow('Metaphase spread', img)
+
     cv2.waitKey(0)
     cv2.destroyAllWindows()
