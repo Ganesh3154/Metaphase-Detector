@@ -2,14 +2,16 @@ from typing import List
 from fastapi import APIRouter,status,File,UploadFile
 from models.patient import Patient
 from config.db import conn
-from schemas.patient import patientEntity, patientsEntity
-from bson.objectid import ObjectId
+from schemas.patient import patientsEntity
 from fastapi.responses import FileResponse
 import cv2
 import numpy as np 
 import math
 import os
 import uuid
+from tensorflow import keras
+from PIL import Image
+import matplotlib.pyplot as plt
 
 patient = APIRouter()
 
@@ -143,4 +145,64 @@ async def detect_metaphase(id, file: List[UploadFile] = File(...)):
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
+@patient.get("/patient/images/analyse/{id}")
+async def get_images(id):
+    # img_path = 'images/0/1.png'
+    # print(img_path)
+    print(id)
+    images = os.listdir(os.path.join('images/analyse/'+str(id)))
+    # print(images)
+    return [FileResponse(src) for src in images]
 
+@patient.post("/patient/{id}/analyse")
+async def analysable_unanalysable(id, file: List[UploadFile] = File(...)):
+    if not conn.metaphase.patient.find_one({"patient_id": int(id)}):
+        return {'msg': f'Patient with id {id} not found'}
+
+    for files in file:
+    # Read the image
+        contents = await files.read()
+        nparr = np.fromstring(contents, np.uint8)
+        nparr1 = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        img = cv2.resize(nparr1, (1000, 1000))
+
+        # neural network
+        model = keras.models.load_model('new_model2.h5')
+        img1 = cv2.imread('model_dataset/test/an/sl112_0028.tif')
+        font = cv2.FONT_HERSHEY_PLAIN
+        img = Image.fromarray(img1, 'RGB')
+        img = img.resize((150,150))
+        # print(img)
+        img = np.expand_dims(img, axis=0)
+        img1 = cv2.resize(img1, (400,400))
+        print(model.predict(img))
+        print("Predicted value:", int(model.predict(img)[0,0]))
+        if not int(model.predict(img)[0,0]):
+            cv2.putText(img1, 'Analysable', (10,40), fontFace= font, fontScale=3, color=(0,255,0), thickness=3)
+        #     cv2.imshow('img', img1)
+            plt.imshow(img1)
+            print('Analysable')
+            if not os.path.exists('images/analyse/'+str(id)):
+                os.mkdir(os.path.join('images/analyse/'+str(id)))
+            img_path = os.path.join('images/analyse/'+str(id)+'/'+str(uuid.uuid4())+'.png')
+            cv2.imwrite(img_path, img)
+        else:
+            cv2.putText(img1, 'Unanalysable', (10,40), fontFace= font, fontScale=3, color=(0,255,0), thickness=3)
+        #     print(img1)
+        #     cv2.imshow('img', img1)
+            plt.imshow(img1)
+            print('Unanalysable')
+            cv2.waitKey()
+
+        if not os.path.exists('images/detect/'+str(id)):
+            os.mkdir(os.path.join('images/detect/'+str(id)))
+        img_path = os.path.join('images/detect/'+str(id)+'/'+str(uuid.uuid4())+'.png')
+        cv2.imwrite(img_path, img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+patient.AREA = []
+@patient.post("/patient/{id}/rank")
+async def rank(id, file: List[UploadFile] = File(...)):
+    if not conn.metaphase.patient.find_one({"patient_id": int(id)}):
+        return {'msg': f'Patient with id {id} not found'}
