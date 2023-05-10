@@ -1,11 +1,14 @@
-from fastapi import APIRouter,status
+from fastapi import APIRouter,status,File,UploadFile
 from models.patient import Patient
 from config.db import conn
 from schemas.patient import patientEntity, patientsEntity
 from bson.objectid import ObjectId
 from fastapi.responses import FileResponse
 import cv2
+import numpy as np 
+import math
 import os
+import uuid
 
 patient = APIRouter()
 
@@ -48,6 +51,7 @@ async def get_images(id):
     # print(img_path)
     print(id)
     images = os.listdir(os.path.join('images/'+str(id)))
+    # print(images)
     return [FileResponse(src) for src in images]
 
 @patient.post("/patient/{id}/detect_metaphase")
@@ -104,7 +108,7 @@ async def detect_metaphase(id, file: UploadFile = File(...)):
     dilated = cv2.dilate(cleaned,kernel,iterations = 6)
 
     contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    min_area = 5000  # minimum area for a metaphase chromosome
+    min_area = 3000  # minimum area for a metaphase chromosome
     max_area = 50000
     for cnt in contours:
         M = cv2.moments(cnt)
@@ -127,14 +131,10 @@ async def detect_metaphase(id, file: UploadFile = File(...)):
 
     # cv2.imshow('eroded', erosion)
     # cv2.imshow('final', img)
-    path = 'images/detect/{id}'+'.png'
-    print(os.listdir(os.path.join('py-mongo')))
-    # cv2.imwrite(os.path.join(path), img)
-    # cv2.imshow('dilated', dilated)
-    # cv2.imshow('clean', cleaned)
-
-    # Display the result
-    # cv2.imshow('Metaphase spread', img)
-
+    # path = 'images/detect/{id}'+'.png'
+    if not os.path.exists('images/'+str(id)):
+        os.mkdir(os.path.join('images/'+str(id)))
+    img_path = os.path.join('images/'+str(id)+'/'+str(uuid.uuid4())+'.png')
+    cv2.imwrite(img_path, img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
