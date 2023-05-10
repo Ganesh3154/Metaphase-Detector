@@ -3,14 +3,16 @@ from models.patient import Patient
 from config.db import conn
 from schemas.patient import patientEntity, patientsEntity
 from bson.objectid import ObjectId
+from fastapi.responses import FileResponse
 import cv2
+import os
 
 patient = APIRouter()
 
 @patient.get("/patient")
 async def find_all_patients():
     '''List all patients'''
-    return patientsEntity(conn.metaphase.patient.find())
+    return patientsEntity(conn.metaphase.patient.find({},{'url': 0}))
 
 @patient.get("/patient/{id}")
 def get_patient(id):
@@ -39,6 +41,14 @@ def delete_patient(id):
     '''Delete patient details using their id'''
     conn.metaphase.patient.find_one_and_delete({"patient_id": int(id)})
     return patientsEntity(conn.metaphase.patient.find())
+
+@patient.get("/patient/images/{id}")
+async def get_images(id):
+    # img_path = 'images/0/1.png'
+    # print(img_path)
+    print(id)
+    images = os.listdir(os.path.join('images/'+str(id)))
+    return [FileResponse(src) for src in images]
 
 @patient.get("/patient/{id}/analyse")
 def analyse_patient_10x(id):

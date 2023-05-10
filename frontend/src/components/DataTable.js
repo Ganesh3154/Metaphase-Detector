@@ -11,8 +11,10 @@ import { useState } from "react";
 import EditPatientModal from "./EditPatientModal";
 import axios from "axios";
 import EditDoctorModal from "./EditDoctorModal";
+import ViewImages from "./ViewImages";
 
 const DataTable = (props) => {
+  const [toggleView, setToggleView] = useState(false);
   const [search, setSearch] = useState({ search: "" });
   const [toggleSearch, setToggleSearch] = useState(false);
   const [filterData, setFilterData] = useState({ filter: "" });
@@ -24,6 +26,7 @@ const DataTable = (props) => {
   // const [confirm, setConfirm] = useState(false);
   const [toggleConfirm, setToggleConfirm] = useState(false);
   const [deleteId, setDeleteId] = useState();
+  const [viewId, setViewId] = useState();
 
   const handleOnChange = (e) => {
     if (e.target.value.length == 0) {
@@ -54,6 +57,10 @@ const DataTable = (props) => {
 
   const toggleEditfn = () => {
     setToggleEdit(!toggleEdit);
+  };
+
+  const toggleViewfn = () => {
+    setToggleView(!toggleView);
   };
 
   const refresh = () => {
@@ -170,7 +177,13 @@ const DataTable = (props) => {
                       </Button>
                     }{" "}
                     {item["analysed"] ? (
-                      <Button size='sm'>
+                      <Button
+                        size='sm'
+                        onClick={(e) => {
+                          setToggleView(true);
+                          setViewId(item["id"]);
+                        }}
+                      >
                         <i className='fa-solid fa-eye'></i>
                       </Button>
                     ) : (
@@ -221,7 +234,13 @@ const DataTable = (props) => {
                       </Button>
                     }{" "}
                     {item["analysed"] ? (
-                      <Button size='sm'>
+                      <Button
+                        size='sm'
+                        onClick={(e) => {
+                          setToggleView(true);
+                          setViewId(item["id"]);
+                        }}
+                      >
                         <i className='fa-solid fa-eye'></i>
                       </Button>
                     ) : (
@@ -286,6 +305,15 @@ const DataTable = (props) => {
             </Modal.Dialog>
           </div>
         </>
+      ) : (
+        <></>
+      )}
+      {toggleView ? (
+        <ViewImages
+          toggle={toggleViewfn}
+          toggleView={toggleView}
+          viewId={viewId}
+        />
       ) : (
         <></>
       )}

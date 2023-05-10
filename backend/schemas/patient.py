@@ -6,7 +6,7 @@ def patientEntity(item) -> dict:
         'doctor_id': item['doctor_id'],
         'age': item['age'],
         'gender': item['gender'],
-        'url': item['url'],  
+        # 'url': item['url'],  
         'analysed': item['analysed']
     }
 
