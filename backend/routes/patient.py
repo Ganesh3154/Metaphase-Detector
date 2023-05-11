@@ -12,6 +12,7 @@ import uuid
 from tensorflow import keras
 from PIL import Image
 import matplotlib.pyplot as plt
+from collections import OrderedDict
 
 patient = APIRouter()
 
@@ -203,8 +204,66 @@ async def analysable_unanalysable(id, file: UploadFile = File(...)):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-patient.AREA = []
+patient.AREA = {}
 @patient.post("/patient/{id}/rank")
 async def rank(id, file: List[UploadFile] = File(...)):
     if not conn.metaphase.patient.find_one({"patient_id": int(id)}):
         return {'msg': f'Patient with id {id} not found'}
+    
+    for files in file:
+    # Read the image
+        contents = await files.read()
+        nparr = np.fromstring(contents, np.uint8)
+        nparr1 = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        img = cv2.resize(nparr1, (1000, 1000))
+        # Convert to grayscale
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+        total_area = 0
+
+        # Apply threshold
+        _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
+
+        # Apply morphological operations
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
+        cleaned = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+        # cv2.imshow('clean', cleaned)
+
+        # Find contours
+        contours, _ = cv2.findContours(cleaned, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        min_area = 260  # minimum area for a metaphase chromosome
+        max_area = 8000
+        for cnt in contours:
+            area = cv2.contourArea(cnt)
+        #   area = cv2.contourArea(cnt)
+            if area < min_area or area > max_area:
+                continue
+
+            # Check if the contour is roughly circular using the circularity metric
+            perimeter = cv2.arcLength(cnt, True)
+            circularity = 4 * 3.14 * area / (perimeter ** 2)
+            if circularity < 0.74:
+                cv2.drawContours(img, [cnt], 0, (0, 0, 255), 2)
+                total_area += area
+        #     print(circularity)
+            # Draw the contour on the original image
+            
+        # Draw contours on original image
+        #cv2.drawContours(img, contours, -1, (0,255,0), 3)
+
+        # Display the result
+        print(total_area)
+        patient.AREA[files.filename] = total_area
+        # cv2.imshow('Metaphase spread', img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+    print(patient.AREA)
+
+    # sorting the values in patient.AREA
+    keys = list(patient.AREA.keys())
+    values = list(patient.AREA.values())
+    sorted_value_index = np.argsort(values)
+    patient.AREA = {keys[i]: values[i] for i in sorted_value_index}
+    
+    print(patient.AREA)
