@@ -8,16 +8,23 @@ import shortid from "https://cdn.skypack.dev/shortid@2.2.16";
 import ViewImages from "../components/ViewImages";
 
 const DetectScreen = () => {
-  const getUsers = () => {
-    axios.get("http://localhost:8000/users").then((res) => {
-      console.log(res.data);
-    });
-  };
+  // const getUsers = () => {
+  //   axios.get("http://localhost:8000/users").then((res) => {
+  //     console.log(res.data);
+  //   });
+  // };
 
   const [id, setId] = useState();
   const [selectedfile, SetSelectedFile] = useState([]);
   const [Files, SetFiles] = useState([]);
   const [img, setImg] = useState([]);
+  const [toggleView, setToggleView] = useState(false);
+  const path = "detect";
+  const title = "detected";
+
+  const toggleViewfn = () => {
+    setToggleView(!toggleView);
+  };
 
   const filesizes = (bytes, decimals = 2) => {
     if (bytes === 0) return "0 Bytes";
@@ -85,6 +92,7 @@ const DetectScreen = () => {
         .post(`http://localhost:8000/patient/detect_metaphase/${id}`, formData)
         .then((res) => {
           console.log(res);
+          toggleViewfn();
         });
       SetSelectedFile([]);
     } else {
@@ -200,6 +208,15 @@ const DetectScreen = () => {
                       </button>
                     </div>
                   </Form>
+                  {toggleView && (
+                    <ViewImages
+                      viewId={id}
+                      toggle={toggleViewfn}
+                      toggleView={toggleView}
+                      path={path}
+                      title={title}
+                    />
+                  )}
                   {/* {Files.length > 0 ? (
                     <div className='kb-attach-box'>
                       <hr />

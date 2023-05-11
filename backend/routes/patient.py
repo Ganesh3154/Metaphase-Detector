@@ -57,6 +57,7 @@ async def get_images(id):
     images = os.listdir(os.path.join('images/detect/'+str(id)))
     # print(images)
     return [FileResponse(src) for src in images]
+    
 
 @patient.post("/patient/detect_metaphase/{id}")
 async def detect_metaphase(id, file: List[UploadFile] = File(...)):

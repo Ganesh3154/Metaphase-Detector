@@ -27,6 +27,8 @@ const DataTable = (props) => {
   const [toggleConfirm, setToggleConfirm] = useState(false);
   const [deleteId, setDeleteId] = useState();
   const [viewId, setViewId] = useState();
+  const path = "analyse";
+  const title = "analysable";
 
   const handleOnChange = (e) => {
     if (e.target.value.length == 0) {
@@ -313,6 +315,8 @@ const DataTable = (props) => {
           toggle={toggleViewfn}
           toggleView={toggleView}
           viewId={viewId}
+          path={path}
+          title={title}
         />
       ) : (
         <></>
