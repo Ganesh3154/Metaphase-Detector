@@ -93,6 +93,10 @@ const AnalyseScreen = () => {
         .then((res) => {
           console.log(res);
           toggleViewfn();
+        })
+        .catch((err) => {
+          alert(err.response.data.detail);
+          console.log(err.response.data);
         });
       SetSelectedFile([]);
     } else {

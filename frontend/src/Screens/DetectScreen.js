@@ -93,6 +93,9 @@ const DetectScreen = () => {
         .then((res) => {
           console.log(res);
           toggleViewfn();
+        })
+        .catch((err) => {
+          alert(err.response.data.detail);
         });
       SetSelectedFile([]);
     } else {

@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter,status,File,UploadFile
+from fastapi import APIRouter, HTTPException,status,File,UploadFile
 from models.patient import Patient
 from config.db import conn
 from schemas.patient import patientsEntity
@@ -63,7 +63,8 @@ async def get_images(id):
 async def detect_metaphase(id, file: List[UploadFile] = File(...)):
     '''Run ML algorithm to find metaphases from 10x images'''
     if not conn.metaphase.patient.find_one({"patient_id": int(id)}):
-        return {'msg': f'Patient with id {id} not found'}
+        raise HTTPException(status_code=404, detail=f'Patient with id {id} not found')
+
 
     for files in file:
     # Read the image
@@ -159,7 +160,7 @@ async def get_images(id):
 @patient.post("/patient/analyse/{id}")
 async def analysable_unanalysable(id, file: List[UploadFile] = File(...)):
     if not conn.metaphase.patient.find_one({"patient_id": int(id)}):
-        return {'msg': f'Patient with id {id} not found'}
+        raise HTTPException(status_code=404, detail=f'Patient with id {id} not found')
 
     for files in file:
     # Read the image
