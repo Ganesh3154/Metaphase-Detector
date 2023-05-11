@@ -38,7 +38,7 @@ const HomeScreen = () => {
           <Col>
             <Card className='m-auto' style={{ width: "18rem" }}>
               <Card.Body>
-                <Card.Title as='h3'>
+                <Card.Title as='h4'>
                   <i className='fa-solid fa-user'></i> Patient ID:{" "}
                   {patients[0]?.id}
                 </Card.Title>
@@ -51,7 +51,7 @@ const HomeScreen = () => {
           <Col>
             <Card className='m-auto' style={{ width: "18rem" }}>
               <Card.Body>
-                <Card.Title as='h3'>
+                <Card.Title as='h4'>
                   <i className='fa-solid fa-user'></i> Patient ID:{" "}
                   {patients[1]?.id}
                 </Card.Title>
@@ -64,7 +64,7 @@ const HomeScreen = () => {
           <Col>
             <Card className='m-auto' style={{ width: "18rem" }}>
               <Card.Body>
-                <Card.Title as='h3'>
+                <Card.Title as='h4'>
                   <i className='fa-solid fa-user'></i> Patient ID:{" "}
                   {patients[2]?.id}
                 </Card.Title>
@@ -77,7 +77,7 @@ const HomeScreen = () => {
           <Col>
             <Card className='m-auto' style={{ width: "18rem" }}>
               <Card.Body>
-                <Card.Title as='h3'>
+                <Card.Title as='h4'>
                   <i className='fa-solid fa-user'></i> Patient ID:{" "}
                   {patients[3]?.id}
                 </Card.Title>

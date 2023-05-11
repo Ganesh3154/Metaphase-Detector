@@ -9,7 +9,7 @@ import DoctorScreen from "./Screens/DoctorScreen";
 import PatientScreen from "./Screens/PatientScreen";
 import AddDoctorScreen from "./Screens/AddDoctorScreen";
 import AddPatientScreen from "./Screens/AddPatientScreen";
-import DetectorScreen from "./Screens/DetectorScreen";
+import DetectScreen from "./Screens/DetectScreen";
 
 function App() {
   return (
@@ -23,7 +23,7 @@ function App() {
           <Route path='/addDoctor' element={<AddDoctorScreen />} />
           <Route path='/patient' element={<PatientScreen />} />
           <Route path='/addPatient' element={<AddPatientScreen />} />
-          <Route path='/detector' element={<DetectorScreen />} />
+          <Route path='/detect' element={<DetectScreen />} />
         </Routes>
         {/* </Container> */}
       </main>

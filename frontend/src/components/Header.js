@@ -32,9 +32,17 @@ const Header = () => {
                   <NavDropdown.Item>View/Edit Patient</NavDropdown.Item>
                 </LinkContainer>
               </NavDropdown>
-              <LinkContainer to='/detector'>
+              <NavDropdown title='Run' id='basic-nav-dropdown'>
+                <LinkContainer to='/detect'>
+                  <NavDropdown.Item>Detect</NavDropdown.Item>
+                </LinkContainer>
+                <LinkContainer to='/analyse'>
+                  <NavDropdown.Item>Analyse</NavDropdown.Item>
+                </LinkContainer>
+              </NavDropdown>
+              {/* <LinkContainer to='/detector'>
                 <Nav.Link>Run MetaPhase Detector</Nav.Link>
-              </LinkContainer>
+              </LinkContainer> */}
             </Nav>
             <Nav className='ms-auto'>
               <Nav.Link href='login'>

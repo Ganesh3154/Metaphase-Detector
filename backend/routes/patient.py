@@ -58,7 +58,7 @@ async def get_images(id):
     # print(images)
     return [FileResponse(src) for src in images]
 
-@patient.post("/patient/{id}/detect_metaphase")
+@patient.post("/patient/detect_metaphase/{id}")
 async def detect_metaphase(id, file: List[UploadFile] = File(...)):
     '''Run ML algorithm to find metaphases from 10x images'''
     if not conn.metaphase.patient.find_one({"patient_id": int(id)}):
@@ -146,14 +146,14 @@ async def detect_metaphase(id, file: List[UploadFile] = File(...)):
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-# @patient.get("/patient/images/analyse/{id}")
-# async def get_images(id):
-#     # img_path = 'images/0/1.png'
-#     # print(img_path)
-#     print(id)
-#     images = os.listdir(os.path.join('images/detect/'+str(id)))
-#     # print(images)
-#     return [FileResponse(src) for src in images]
+@patient.get("/patient/images/analyse/{id}")
+async def get_images(id):
+    # img_path = 'images/0/1.png'
+    # print(img_path)
+    print(id)
+    images = os.listdir(os.path.join('images/analyse/'+str(id)))
+    # print(images)
+    return [FileResponse(src) for src in images]
 
 @patient.post("/patient/analyse/{id}")
 async def analysable_unanalysable(id, file: UploadFile = File(...)):

@@ -18,12 +18,12 @@ const ViewImages = (props) => {
   useEffect(() => {
     mountedRef.current = true;
     axios
-      .get(`http://localhost:8000/patient/images/detect/${props.viewId}`)
+      .get(`http://localhost:8000/patient/images/analyse/${props.viewId}`)
       .then((res) => {
         console.log(res.data);
         setImgSrc(res.data);
         setMainImg(
-          `http://127.0.0.1:8080/detect/${props.viewId}/${res.data[0].path}`
+          `http://127.0.0.1:8080/analyse/${props.viewId}/${res.data[0].path}`
         );
       });
   }, []);
@@ -92,7 +92,7 @@ const ViewImages = (props) => {
                   {imgSrc?.map((item, i) => (
                     <img
                       key={i}
-                      src={`http://127.0.0.1:8080/detect/${props.viewId}/${item.path}`}
+                      src={`http://127.0.0.1:8080/analyse/${props.viewId}/${item.path}`}
                       onClick={(e) => {
                         changeImg(e);
                       }}
