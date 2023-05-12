@@ -44,11 +44,11 @@ const Header = () => {
                 <Nav.Link>Run MetaPhase Detector</Nav.Link>
               </LinkContainer> */}
             </Nav>
-            <Nav className='ms-auto'>
+            {/* <Nav className='ms-auto'>
               <Nav.Link href='login'>
                 <i className='fas fa-user'></i> Log in
               </Nav.Link>
-            </Nav>
+            </Nav> */}
           </Navbar.Collapse>
         </Container>
       </Navbar>

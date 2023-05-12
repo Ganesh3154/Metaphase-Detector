@@ -157,10 +157,16 @@ async def get_images(id):
     # print(images)
     return [FileResponse(src) for src in images]
 
+
 @patient.post("/patient/analyse/{id}")
 async def analysable_unanalysable(id, file: List[UploadFile] = File(...)):
     if not conn.metaphase.patient.find_one({"patient_id": int(id)}):
         raise HTTPException(status_code=404, detail=f'Patient with id {id} not found')
+
+    if conn.metaphase.patient.find_one({"patient_id": int(id)})['analysed']:
+        raise HTTPException(status_code=400, detail='already analysed')
+
+    patient.AREA = []
 
     for files in file:
     # Read the image
@@ -170,102 +176,178 @@ async def analysable_unanalysable(id, file: List[UploadFile] = File(...)):
         img1 = nparr1
 
         # neural network
-        model_path = os.path.join('NN_model/newmodelAlexNet-07-0.8800.h5')
+        model_path = os.path.join('NN_model/new_model2.h5')
         model = keras.models.load_model(model_path)
         # img1 = cv2.imread('model_dataset/test/an/sl112_0028.tif')
         font = cv2.FONT_HERSHEY_PLAIN
         img = Image.fromarray(img1, 'RGB')
-        img = img.resize((227,227))
+        img = img.resize((150,150))
         # print(img)
         img = np.expand_dims(img, axis=0)
         img1 = cv2.resize(img1, (400,400))
         print(model.predict(img))
         print("Predicted value:", int(model.predict(img)[0,0]))
         if not int(model.predict(img)[0,0]):
+            new_img = cv2.resize(nparr1, (1000, 1000))
+            # Convert to grayscale
+            gray = cv2.cvtColor(new_img, cv2.COLOR_BGR2GRAY)
+            nparr1 = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            new_img = cv2.resize(nparr1, (1000, 1000))
+            # Convert to grayscale
+            gray = cv2.cvtColor(new_img, cv2.COLOR_BGR2GRAY)
+
+            total_area = 0
+
+            # Apply threshold
+            _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
+            # Apply morphological operations
+            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
+            cleaned = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+            # cv2.imshow('clean', cleaned)
+
+            # Find contours
+            contours, _ = cv2.findContours(cleaned, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+            min_area = 260  # minimum area for a metaphase chromosome
+            max_area = 8000
+            for cnt in contours:
+                area = cv2.contourArea(cnt)
+            #   area = cv2.contourArea(cnt)
+                if area < min_area or area > max_area:
+                    continue
+
+                # Check if the contour is roughly circular using the circularity metric
+                perimeter = cv2.arcLength(cnt, True)
+                circularity = 4 * 3.14 * area / (perimeter ** 2)
+                if circularity < 0.74:
+                    # cv2.drawContours(new_img, [cnt], 0, (0, 0, 255), 2)
+                    total_area += area
+            #     print(circularity)
+                # Draw the contour on the original image
+                
+            # Draw contours on original image
+            #cv2.drawContours(img, contours, -1, (0,255,0), 3)
+
+            # Display the result
+            print(total_area)
+            patient.AREA.append((new_img, total_area))
+            # cv2.imshow('Metaphase spread', img)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+
             cv2.putText(img1, 'Analysable', (10,40), fontFace= font, fontScale=3, color=(0,255,0), thickness=3)
-        #     cv2.imshow('img', img1)
+            #cv2.imshow('img', img1)
             # plt.imshow(img1)
             print('Analysable')
-            if not os.path.exists('images/analyse/'+str(id)):
-                os.mkdir(os.path.join('images/analyse/'+str(id)))
-            img_path = os.path.join('images/analyse/'+str(id)+'/'+str(uuid.uuid4())+'.png')
-            print(img_path)
-            cv2.imwrite(img_path, img1)
+            # if not os.path.exists('images/analyse/'+str(id)):
+            #     os.mkdir(os.path.join('images/analyse/'+str(id)))
+            # img_path = os.path.join('images/analyse/'+str(id)+'/'+str(uuid.uuid4())+'.png')
+            # print(img_path)
+            # cv2.imwrite(img_path, img1)
         else:
             cv2.putText(img1, 'Unanalysable', (10,40), fontFace= font, fontScale=3, color=(0,255,0), thickness=3)
-        #     print(img1)
-        #     cv2.imshow('img', img1)
+            #print(img1)
+            #cv2.imshow('img', img1)
             # plt.imshow(img1)
             print('Unanalysable')
             cv2.waitKey()
 
+    # sorting the values in patient.AREA
+    first = 1   
+    last = len(patient.AREA)   
+    for k in range(0, last):   
+        for l in range(0, last-k-1):   
+            if (patient.AREA[l][first] < patient.AREA[l + 1][first]):   
+                new_item = patient.AREA[l]   
+                patient.AREA[l]= patient.AREA[l + 1]
+                patient.AREA[l + 1]= new_item   
+    # print(patient.AREA)
+
+    # if last >= 20:
+    #     last = 20
+    try:
+        for i in range(20):  
+            if not os.path.exists('images/analyse/'+str(id)):
+                os.mkdir(os.path.join('images/analyse/'+str(id)))
+            img_path = os.path.join('images/analyse/'+str(id)+'/'+str(uuid.uuid4())+'.png')
+            ranked_image = patient.AREA[i][0]
+            cv2.imwrite(img_path, ranked_image)
+            print(ranked_image)
+    except IndexError:
+        pass
+
+    conn.metaphase.patient.find_one_and_update({"patient_id": int(id)}, {"$set":{'analysed': True}})
+    
+                    # print(img_path)
+        # print(sorted[0])
         # if not os.path.exists('images/detect/'+str(id)):
         #     os.mkdir(os.path.join('images/detect/'+str(id)))
         # img_path = os.path.join('images/detect/'+str(id)+'/'+str(uuid.uuid4())+'.png')
         # cv2.imwrite(img_path, img)
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
-
-patient.AREA = {}
-@patient.post("/patient/{id}/rank")
-async def rank(id, file: List[UploadFile] = File(...)):
-    if not conn.metaphase.patient.find_one({"patient_id": int(id)}):
-        return {'msg': f'Patient with id {id} not found'}
     
-    for files in file:
-    # Read the image
-        contents = await files.read()
-        nparr = np.fromstring(contents, np.uint8)
-        nparr1 = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-        img = cv2.resize(nparr1, (1000, 1000))
-        # Convert to grayscale
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-        total_area = 0
+# patient.AREA = {}
+# @patient.post("/patient/{id}/rank")
+# async def rank(id, file: List[UploadFile] = File(...)):
+#     if not conn.metaphase.patient.find_one({"patient_id": int(id)}):
+#         return {'msg': f'Patient with id {id} not found'}
+    
+#     for files in file:
+#     # Read the image
+#         contents = await files.read()
+#         nparr = np.fromstring(contents, np.uint8)
+#         nparr1 = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+#         img = cv2.resize(nparr1, (1000, 1000))
+#         # Convert to grayscale
+#         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-        # Apply threshold
-        _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
+#         total_area = 0
 
-        # Apply morphological operations
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
-        cleaned = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
-        # cv2.imshow('clean', cleaned)
+#         # Apply threshold
+#         _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
 
-        # Find contours
-        contours, _ = cv2.findContours(cleaned, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+#         # Apply morphological operations
+#         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
+#         cleaned = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+#         # cv2.imshow('clean', cleaned)
 
-        min_area = 260  # minimum area for a metaphase chromosome
-        max_area = 8000
-        for cnt in contours:
-            area = cv2.contourArea(cnt)
-        #   area = cv2.contourArea(cnt)
-            if area < min_area or area > max_area:
-                continue
+#         # Find contours
+#         contours, _ = cv2.findContours(cleaned, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-            # Check if the contour is roughly circular using the circularity metric
-            perimeter = cv2.arcLength(cnt, True)
-            circularity = 4 * 3.14 * area / (perimeter ** 2)
-            if circularity < 0.74:
-                cv2.drawContours(img, [cnt], 0, (0, 0, 255), 2)
-                total_area += area
-        #     print(circularity)
-            # Draw the contour on the original image
+#         min_area = 260  # minimum area for a metaphase chromosome
+#         max_area = 8000
+#         for cnt in contours:
+#             area = cv2.contourArea(cnt)
+#         #   area = cv2.contourArea(cnt)
+#             if area < min_area or area > max_area:
+#                 continue
+
+#             # Check if the contour is roughly circular using the circularity metric
+#             perimeter = cv2.arcLength(cnt, True)
+#             circularity = 4 * 3.14 * area / (perimeter ** 2)
+#             if circularity < 0.74:
+#                 cv2.drawContours(img, [cnt], 0, (0, 0, 255), 2)
+#                 total_area += area
+#         #     print(circularity)
+#             # Draw the contour on the original image
             
-        # Draw contours on original image
-        #cv2.drawContours(img, contours, -1, (0,255,0), 3)
+#         # Draw contours on original image
+#         #cv2.drawContours(img, contours, -1, (0,255,0), 3)
 
-        # Display the result
-        print(total_area)
-        patient.AREA[files.filename] = total_area
-        # cv2.imshow('Metaphase spread', img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-    print(patient.AREA)
+#         # Display the result
+#         print(total_area)
+#         patient.AREA[files.filename] = total_area
+#         # cv2.imshow('Metaphase spread', img)
+#         cv2.waitKey(0)
+#         cv2.destroyAllWindows()
+#     print(patient.AREA)
 
-    # sorting the values in patient.AREA
-    keys = list(patient.AREA.keys())
-    values = list(patient.AREA.values())
-    sorted_value_index = np.argsort(values)
-    patient.AREA = {keys[i]: values[i] for i in sorted_value_index}
+#     # sorting the values in patient.AREA
+#     keys = list(patient.AREA.keys())
+#     values = list(patient.AREA.values())
+#     sorted_value_index = np.argsort(values)
+#     patient.AREA = {keys[i]: values[i] for i in sorted_value_index}
     
-    print(patient.AREA)
+#     print(patient.AREA)
