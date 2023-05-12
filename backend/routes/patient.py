@@ -170,12 +170,12 @@ async def analysable_unanalysable(id, file: List[UploadFile] = File(...)):
         img1 = nparr1
 
         # neural network
-        model_path = os.path.join('NN_model/new_model2.h5')
+        model_path = os.path.join('NN_model/newmodelAlexNet-07-0.8800.h5')
         model = keras.models.load_model(model_path)
         # img1 = cv2.imread('model_dataset/test/an/sl112_0028.tif')
         font = cv2.FONT_HERSHEY_PLAIN
         img = Image.fromarray(img1, 'RGB')
-        img = img.resize((150,150))
+        img = img.resize((227,227))
         # print(img)
         img = np.expand_dims(img, axis=0)
         img1 = cv2.resize(img1, (400,400))
