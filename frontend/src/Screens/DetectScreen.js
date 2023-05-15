@@ -6,6 +6,7 @@ import "./DetectScreen.css";
 // import React, { useState } from "https://cdn.skypack.dev/react@17.0.1";
 import shortid from "https://cdn.skypack.dev/shortid@2.2.16";
 import ViewImages from "../components/ViewImages";
+import Loading from "../components/Loading";
 
 const DetectScreen = () => {
   // const getUsers = () => {
@@ -21,6 +22,7 @@ const DetectScreen = () => {
   const [toggleView, setToggleView] = useState(false);
   const path = "detect";
   const title = "detected";
+  const [isLoading, setIsLoading] = useState(false);
 
   const toggleViewfn = () => {
     setToggleView(!toggleView);
@@ -88,16 +90,20 @@ const DetectScreen = () => {
           return [...preValue, selectedfile[index]];
         });
       }
+      setIsLoading(true);
       axios
         .post(`http://localhost:8000/patient/detect_metaphase/${id}`, formData)
         .then((res) => {
           console.log(res);
           toggleViewfn();
+          setIsLoading(false);
+          SetSelectedFile([]);
         })
         .catch((err) => {
           alert(err.response.data.detail);
+          setIsLoading(false);
+          SetSelectedFile([]);
         });
-      SetSelectedFile([]);
     } else {
       alert("Please select file");
     }
@@ -117,110 +123,111 @@ const DetectScreen = () => {
   };
 
   return (
-    <Container>
-      <Container className='ps-0 py-3 m-0' as='h1'>
-        Detect Metaphase
-      </Container>
-      <div className='fileupload-view'>
-        <div className='row justify-content-center m-0'>
-          <div className='col-md-6'>
-            <div className='card mt-5'>
-              <div className='card-body'>
-                <div className='kb-data-box'>
-                  <div className='kb-modal-data-title'></div>
-                  <Form onSubmit={FileUploadSubmit}>
-                    <Form.Group className='mb-3' htmlFor='patient_id'>
-                      <Form.Label>Patient ID</Form.Label>
-                      <Form.Control
-                        id='patientId'
-                        placeholder='Patient ID'
-                        name='patient_id'
-                        required
-                        onChange={(e) => setId(e.target.value)}
-                      />
-                    </Form.Group>
-                    <div className='kb-data-title pt-2'>
-                      <h6>Upload 10x Images</h6>
-                    </div>
-                    <div className='kb-file-upload'>
-                      <div className='file-upload-box'>
-                        <input
-                          type='file'
-                          id='fileupload'
-                          className='file-upload-input'
-                          onChange={InputChange}
-                          multiple
+    <>
+      <Container>
+        <Container className='ps-0 py-3 m-0' as='h1'>
+          Detect Metaphase
+        </Container>
+        <div className='fileupload-view'>
+          <div className='row justify-content-center m-0'>
+            <div className='col-md-6'>
+              <div className='card mt-5'>
+                <div className='card-body'>
+                  <div className='kb-data-box'>
+                    <div className='kb-modal-data-title'></div>
+                    <Form onSubmit={FileUploadSubmit}>
+                      <Form.Group className='mb-3' htmlFor='patient_id'>
+                        <Form.Label>Patient ID</Form.Label>
+                        <Form.Control
+                          id='patientId'
+                          placeholder='Patient ID'
+                          name='patient_id'
+                          required
+                          onChange={(e) => setId(e.target.value)}
                         />
-                        <span>
-                          Drag and drop or{" "}
-                          <span className='file-link'>Choose your files</span>
-                        </span>
+                      </Form.Group>
+                      <div className='kb-data-title pt-2'>
+                        <h6>Upload 10x Images</h6>
                       </div>
-                    </div>
-                    <div className='kb-attach-box mb-3'>
-                      {selectedfile.map((data, index) => {
-                        const {
-                          id,
-                          filename,
-                          filetype,
-                          fileimage,
-                          datetime,
-                          filesize,
-                        } = data;
-                        return (
-                          <div className='file-atc-box' key={id}>
-                            {filename.match(/.(jpg|jpeg|png|gif|svg)$/i) ? (
-                              <div className='file-image'>
-                                {" "}
-                                <img src={fileimage} alt='' />
-                              </div>
-                            ) : (
-                              <div className='file-image'>
-                                <i className='far fa-file-alt'></i>
-                              </div>
-                            )}
-                            <div className='file-detail'>
-                              <h6>{filename}</h6>
-                              <p></p>
-                              <p>
-                                <span>Size : {filesize} &nbsp;</span>
-                                <span className='ml-2'>
-                                  Modified Time : {datetime}
-                                </span>
-                              </p>
-                              <div className='file-actions'>
-                                <button
-                                  type='button'
-                                  className='file-action-btn'
-                                  onClick={() => DeleteSelectFile(id)}
-                                >
-                                  Delete
-                                </button>
+                      <div className='kb-file-upload'>
+                        <div className='file-upload-box'>
+                          <input
+                            type='file'
+                            id='fileupload'
+                            className='file-upload-input'
+                            onChange={InputChange}
+                            multiple
+                          />
+                          <span>
+                            Drag and drop or{" "}
+                            <span className='file-link'>Choose your files</span>
+                          </span>
+                        </div>
+                      </div>
+                      <div className='kb-attach-box mb-3'>
+                        {selectedfile.map((data, index) => {
+                          const {
+                            id,
+                            filename,
+                            filetype,
+                            fileimage,
+                            datetime,
+                            filesize,
+                          } = data;
+                          return (
+                            <div className='file-atc-box' key={id}>
+                              {filename.match(/.(jpg|jpeg|png|gif|svg)$/i) ? (
+                                <div className='file-image'>
+                                  {" "}
+                                  <img src={fileimage} alt='' />
+                                </div>
+                              ) : (
+                                <div className='file-image'>
+                                  <i className='far fa-file-alt'></i>
+                                </div>
+                              )}
+                              <div className='file-detail'>
+                                <h6>{filename}</h6>
+                                <p></p>
+                                <p>
+                                  <span>Size : {filesize} &nbsp;</span>
+                                  <span className='ml-2'>
+                                    Modified Time : {datetime}
+                                  </span>
+                                </p>
+                                <div className='file-actions'>
+                                  <button
+                                    type='button'
+                                    className='file-action-btn'
+                                    onClick={() => DeleteSelectFile(id)}
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div className='kb-buttons-box'>
-                      <button
-                        type='submit'
-                        className='btn btn-primary form-submit'
-                      >
-                        Detect
-                      </button>
-                    </div>
-                  </Form>
-                  {toggleView && (
-                    <ViewImages
-                      viewId={id}
-                      toggle={toggleViewfn}
-                      toggleView={toggleView}
-                      path={path}
-                      title={title}
-                    />
-                  )}
-                  {/* {Files.length > 0 ? (
+                          );
+                        })}
+                      </div>
+                      <div className='kb-buttons-box'>
+                        <button
+                          type='submit'
+                          className='btn btn-primary form-submit'
+                        >
+                          Detect
+                        </button>
+                      </div>
+                    </Form>
+                    {toggleView && (
+                      <ViewImages
+                        viewId={id}
+                        toggle={toggleViewfn}
+                        toggleView={toggleView}
+                        path={path}
+                        title={title}
+                      />
+                    )}
+                    {/* {Files.length > 0 ? (
                     <div className='kb-attach-box'>
                       <hr />
                       {Files.map((data, index) => {
@@ -275,13 +282,15 @@ const DetectScreen = () => {
                   ) : (
                     ""
                   )} */}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </Container>
+      </Container>
+      {isLoading && <Loading />}
+    </>
   );
 };
 

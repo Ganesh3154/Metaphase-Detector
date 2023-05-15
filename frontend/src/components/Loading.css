@@ -1,0 +1,76 @@
+.wrapper {
+  position: fixed;
+  top: 40%;
+  left: 47%;
+  width: 25%;
+  /* margin: 0;
+  padding: 0; */
+  /* transform: translate(-50%, -50%); */
+  /* background: rgba(0, 0, 0, 0.6); */
+  /* margin-left: 47%; */
+}
+
+#root {
+  position: relative;
+}
+
+.main {
+  position: absolute;
+  display: block;
+  min-height: 100vh;
+  width: 100%;
+  top: 0%;
+  bottom: 0%;
+  /* padding-top: auto; */
+  background: rgba(0, 0, 0, 0.6);
+  /* margin-left: 50%; */
+}
+
+.circle {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  background-color: #fff3b1;
+  border-radius: 50%;
+  animation: loading 1.5s cubic-bezier(0.8, 0.5, 0.2, 1.4) infinite;
+  transform-origin: bottom center;
+  position: relative;
+}
+@keyframes loading {
+  0% {
+    transform: translateY(0px);
+    background-color: #fff5bd;
+  }
+  50% {
+    transform: translateY(50px);
+    background-color: #ffa39b;
+  }
+  100% {
+    transform: translateY(0px);
+    background-color: #ffed87;
+  }
+}
+.circle-1 {
+  animation-delay: 0.1s;
+}
+.circle-2 {
+  animation-delay: 0.2s;
+}
+.circle-3 {
+  animation-delay: 0.3s;
+}
+.circle-4 {
+  animation-delay: 0.4s;
+}
+.circle-5 {
+  animation-delay: 0.5s;
+}
+.circle-6 {
+  animation-delay: 0.6s;
+}
+.circle-7 {
+  animation-delay: 0.7s;
+}
+.circle-8 {
+  animation-delay: 0.8s;
+}
