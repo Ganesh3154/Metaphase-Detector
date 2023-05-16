@@ -1,21 +1,22 @@
 .wrapper {
-  position: fixed;
-  top: 40%;
-  left: 47%;
-  width: 25%;
+  /* position: fixed; */
+  /* top: 40%; */
+  margin-top: 20%;
+  /* left: 47%; */
+  width: 53%;
   /* margin: 0;
   padding: 0; */
   /* transform: translate(-50%, -50%); */
   /* background: rgba(0, 0, 0, 0.6); */
-  /* margin-left: 47%; */
+  margin-left: auto;
 }
 
-#root {
+/* #root {
   position: relative;
-}
+} */
 
 .main {
-  position: absolute;
+  position: fixed;
   display: block;
   min-height: 100vh;
   width: 100%;
